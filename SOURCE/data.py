@@ -66,8 +66,10 @@ class DATA():
         self.data_index = self.data_index + config.BATCH_SIZE
         return batch, label
 
+def DataTests():
+    data = DATA(config.TEST_DIR)
+    for i in range(int(2*(config.NUM_SUBIMG/config.BATCH_SIZE))):
+        batch, label = data.generate_batch()
+        print(i)
 
-data = DATA(config.TEST_DIR)
-for i in range(int(2*(config.NUM_SUBIMG/config.BATCH_SIZE))):
-    batch, label = data.generate_batch()
-    print(i)
+#DataTests():
