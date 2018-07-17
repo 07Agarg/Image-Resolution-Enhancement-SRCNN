@@ -5,20 +5,20 @@ Created on Sat Jun 23 20:32:40 2018
 @author: ashima.garg
 """
 
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 import data
 import model
 import config
 
 if __name__ == "__main__":
     # READ DATA
-    data = data.DATA(config.TRAIN_DIR)
+    train_data = data.DATA(config.TRAIN_DIR)
     # BUILD MODEL
     model = model.MODEL()
     model.build()
     # TRAIN MODEL
-    model.train(data)
+    model.train(train_data)
     # TEST MODEL
-    data = data.DATA(config.TEST_DIR)
-    model.test(data)
-
-
+    test_data = data.DATA(config.TEST_DIR)
+    model.test(test_data)
