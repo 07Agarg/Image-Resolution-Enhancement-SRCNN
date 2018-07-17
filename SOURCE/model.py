@@ -40,15 +40,17 @@ class MODEL():
         with tf.Session() as session:
             session.run(tf.global_variables_initializer())
             print('All variables Initialized')
-            total_batch = int(data.size/config.BATCH_SIZE)
             for epoch in range(config.NUM_EPOCHS):
                 avg_cost = 0
+                total_batch = 0
                 for batch in range(int(data.size*(config.NUM_SUBIMG/config.BATCH_SIZE))):
                     batch_X, batch_Y = data.generate_batch()
                     feed_dict = {self.inputs: batch_X, self.labels: batch_Y}
                     _, loss_val = session.run([optimizer, self.loss], feed_dict=feed_dict)
 #                    print("batch:", batch, " loss: ", loss_val)
-                    avg_cost += loss_val / total_batch
+                    total_batch += 5
+                    avg_cost += loss_val
+                avg_cost = avg_cost / total_batch
                 print("Epoch:", (epoch + 1), "cost =", "{:.3f}".format(avg_cost))
 
             save_path = saver.save(session, os.path.join(config.MODEL_DIR, "model" + str(config.BATCH_SIZE) + "_" + str(config.NUM_EPOCHS) + ".ckpt"))
