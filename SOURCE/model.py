@@ -8,14 +8,16 @@ Created on Sat Jun 23 20:34:01 2018
 import tensorflow as tf
 import config
 import neural_network
+import numpy as np
 import os
+import utils
 
 
 class MODEL():
 
     def __init__(self):
-        self.inputs = tf.placeholder(shape=[config.BATCH_SIZE, config.INPUT_SIZE, config.INPUT_SIZE, 3], dtype=tf.float32)
-        self.labels = tf.placeholder(shape=[config.BATCH_SIZE, config.INPUT_SIZE, config.INPUT_SIZE, 3], dtype=tf.float32)
+        self.inputs = tf.placeholder(shape=[None, config.INPUT_SIZE, config.INPUT_SIZE, 3], dtype=tf.float32)
+        self.labels = tf.placeholder(shape=[None, config.INPUT_SIZE, config.INPUT_SIZE, 3], dtype=tf.float32)
         self.logits = None
         self.output = None
         self.loss = None
@@ -57,8 +59,8 @@ class MODEL():
             print("Model saved in path: %s" % save_path)
 
     def test(self, data):
+        saver = tf.train.Saver()
         with tf.Session() as session:
-            saver = tf.train.Saver()
             saver.restore(session, os.path.join(config.MODEL_DIR, "model" + str(config.BATCH_SIZE) + "_" + str(config.NUM_EPOCHS) + ".ckpt"))
             avg_cost = 0
             total_batch = int(data.size/config.BATCH_SIZE)
@@ -68,3 +70,16 @@ class MODEL():
                 pred_Y, loss = session.run([self.output, self.loss], feed_dict=feed_dict)
                 avg_cost += loss/total_batch
             print("cost =", "{:.3f}".format(avg_cost))
+
+    def sr_generate(self, data):
+        saver = tf.train.Saver()
+        with tf.Session() as session:
+            saver.restore(session, os.path.join(config.MODEL_DIR, "model" + str(config.BATCH_SIZE) + "_" + str(config.NUM_EPOCHS) + ".ckpt"))
+            for file in data.filelist:
+                data.process_img(file)
+                batch = np.asarray(data.batch[:5])
+                feed_dict = {self.inputs: batch}
+                output = session.run(self.logits, feed_dict=feed_dict)
+                print(output.shape)
+                print(np.reshape(output, (15,15,21,21,3)))
+                utils.stitch(output)

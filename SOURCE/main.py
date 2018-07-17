@@ -18,7 +18,8 @@ if __name__ == "__main__":
     model = model.MODEL()
     model.build()
     # TRAIN MODEL
-    model.train(train_data)
+#    model.train(train_data)
     # TEST MODEL
     test_data = data.DATA(config.TEST_DIR)
-    model.test(test_data)
+#    model.test(test_data)
+    model.sr_generate(test_data)

@@ -33,5 +33,6 @@ PAD = int((INPUT_SIZE - OUTPUT_SIZE)/2)
 STRIDE = 14
 
 # DATA INFORMATION
-NUM_SUBIMG = int(math.pow((math.floor((READ_SIZE-INPUT_SIZE)/STRIDE) + 1), 2))
+SUB_IMG = int(math.floor((READ_SIZE-INPUT_SIZE)/STRIDE) + 1)
+NUM_SUBIMG = int(math.pow(SUB_IMG, 2))
 BATCH_SIZE = 5
