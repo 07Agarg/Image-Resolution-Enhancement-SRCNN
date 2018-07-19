@@ -75,11 +75,10 @@ class MODEL():
         saver = tf.train.Saver()
         with tf.Session() as session:
             saver.restore(session, os.path.join(config.MODEL_DIR, "model" + str(config.BATCH_SIZE) + "_" + str(config.NUM_EPOCHS) + ".ckpt"))
-            for file in data.filelist:
+            for file in data.filelist[:1]:
                 data.process_img(file)
-                batch = np.asarray(data.batch[:5])
+                batch = np.asarray(data.batch)
                 feed_dict = {self.inputs: batch}
-                output = session.run(self.logits, feed_dict=feed_dict)
-                print(output.shape)
-                print(np.reshape(output, (15,15,21,21,3)))
-                utils.stitch(output)
+                patches = session.run(self.output, feed_dict=feed_dict)
+                image = utils.stitch(patches)
+                utils.reconstruct(image, file)
