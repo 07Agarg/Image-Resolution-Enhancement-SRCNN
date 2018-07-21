@@ -56,20 +56,21 @@ class DATA():
                 self.batch_label.append(sub_label)
 
     def generate_batch(self):
-        if self.data_index>=(config.NUM_SUBIMG-1) or self.batch is None:
-            print("file:", self.file_index)
+        if self.data_index >= (config.NUM_SUBIMG-1) or self.batch is None:
             self.data_index = 0
             self.process_img(self.filelist[self.file_index])
             self.file_index = (self.file_index + 1) % self.size
-        batch = self.batch[self.data_index:(self.data_index+config.BATCH_SIZE)]
-        label = self.batch_label[self.data_index:(self.data_index+config.BATCH_SIZE)]
+        batch = np.asarray(self.batch[self.data_index:(self.data_index+config.BATCH_SIZE)])/255
+        label = np.asarray(self.batch_label[self.data_index:(self.data_index+config.BATCH_SIZE)])/255
         self.data_index = self.data_index + config.BATCH_SIZE
         return batch, label
+
 
 def DataTests():
     data = DATA(config.TEST_DIR)
     for i in range(int(2*(config.NUM_SUBIMG/config.BATCH_SIZE))):
         batch, label = data.generate_batch()
+        print(batch.shape)
         print(i)
 
-#DataTests():
+# DataTests()
