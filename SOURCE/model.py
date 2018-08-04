@@ -17,7 +17,7 @@ class MODEL():
 
     def __init__(self):
         self.inputs = tf.placeholder(shape=[None, config.INPUT_SIZE, config.INPUT_SIZE, 3], dtype=tf.float32)
-        self.labels = tf.placeholder(shape=[None, config.INPUT_SIZE, config.INPUT_SIZE, 3], dtype=tf.float32)
+        self.labels = tf.placeholder(shape=[None, config.OUTPUT_SIZE, config.OUTPUT_SIZE, 3], dtype=tf.float32)
         self.logits = None
         self.output = None
         self.loss = None
@@ -33,7 +33,7 @@ class MODEL():
 
         outer_layer = neural_network.Output_Layer(shape = [5, 5, 32, 3], mean = 0.0, stddev = 0.001, value = 0.1)
         self.logits = outer_layer.feed_forward(input_data=h, stride=[1, 1, 1, 1])
-        self.output = tf.image.resize_images(self.logits, [config.INPUT_SIZE, config.INPUT_SIZE], method=tf.image.ResizeMethod.BILINEAR)
+        self.output = tf.image.resize_images(self.logits, [config.OUTPUT_SIZE, config.OUTPUT_SIZE], method=tf.image.ResizeMethod.BILINEAR)
         self.loss = tf.reduce_mean(tf.squared_difference(self.labels, self.output))
 
     def train(self, data):

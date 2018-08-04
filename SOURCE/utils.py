@@ -25,11 +25,10 @@ def deprocess(imgs):
 
 
 def stitch(patches):
-    image = np.ndarray(shape=(config.SUB_IMG*config.OUTPUT_SIZE, config.SUB_IMG*config.OUTPUT_SIZE, 3))
-    count = 0
-    for i in range(0, config.READ_SIZE - config.INPUT_SIZE, config.STRIDE):
-        for j in range(0, config.READ_SIZE - config.INPUT_SIZE, config.STRIDE):
-            image[i:(i+config.INPUT_SIZE), j:(j+config.INPUT_SIZE), :] = patches[count]
-            count = count+1
+    image = np.ndarray(shape=(config.NUM_SUBIMG*config.OUTPUT_SIZE, config.NUM_SUBIMG*config.OUTPUT_SIZE, 3))
+    for index, patch in enumerate(patches):
+        j = index % config.NUM_SUBIMG
+        i = index // config.NUM_SUBIMG
+        image[i*config.OUTPUT_SIZE:(i*config.OUTPUT_SIZE+config.OUTPUT_SIZE), j*config.OUTPUT_SIZE:(j*config.OUTPUT_SIZE+config.OUTPUT_SIZE), :] = patch
     image = deprocess(image)
     return image

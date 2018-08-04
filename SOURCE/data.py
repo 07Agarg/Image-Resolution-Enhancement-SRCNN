@@ -49,9 +49,9 @@ class DATA():
             for j in range(0, config.READ_SIZE - config.INPUT_SIZE, config.STRIDE):
                 ny += 1
                 sub_input = inputs[i:(i+config.INPUT_SIZE), j:(j+config.INPUT_SIZE)]
-                sub_label = labels[(i+config.PAD):(i+config.PAD+config.INPUT_SIZE), (j+config.PAD):(j+config.PAD+config.INPUT_SIZE)]
+                sub_label = labels[(i+config.PAD):(i+config.PAD+config.OUTPUT_SIZE), (j+config.PAD):(j+config.PAD+config.OUTPUT_SIZE)]
                 sub_input = np.reshape(sub_input, (config.INPUT_SIZE, config.INPUT_SIZE, 3))
-                sub_label = np.reshape(sub_label, (config.INPUT_SIZE, config.INPUT_SIZE, 3))
+                sub_label = np.reshape(sub_label, (config.OUTPUT_SIZE, config.OUTPUT_SIZE, 3))
                 self.batch.append(sub_input)
                 self.batch_label.append(sub_label)
 
