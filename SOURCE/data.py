@@ -9,8 +9,6 @@ import numpy as np
 import cv2
 import os
 import config
-import scipy.misc
-import scipy.ndimage
 
 def modcrop(image, scale=3):
     if image.shape[2] == 3:
@@ -43,9 +41,8 @@ class DATA():
     def preprocess_img(self, img):
         img = im2double(img)
         labels = modcrop(img, config.SCALE)
-        size = labels.shape
-        temp = scipy.misc.imresize(labels, 1/config.SCALE, interp='bicubic')
-        inputs = scipy.misc.imresize(temp, size, interp='bicubic')
+        bicubic_img = cv2.resize(img, None, fx=1.0/config.SCALE, fy=1.0/config.SCALE, interpolation=cv2.INTER_CUBIC)
+        inputs = cv2.resize(bicubic_img, None, fx=config.SCALE/1.0, fy=config.SCALE/1.0, interpolation=cv2.INTER_CUBIC)
         inputs = inputs[:, :, 0]
         labels = labels[:, :, 0]
         return inputs, labels
