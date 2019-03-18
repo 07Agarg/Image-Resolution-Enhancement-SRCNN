@@ -16,24 +16,21 @@ import utils
 class MODEL():
 
     def __init__(self):
-        self.inputs = tf.placeholder(shape=[None, config.INPUT_SIZE, config.INPUT_SIZE, 3], dtype=tf.float32)
-        self.labels = tf.placeholder(shape=[None, config.OUTPUT_SIZE, config.OUTPUT_SIZE, 3], dtype=tf.float32)
+        self.inputs = tf.placeholder(shape=[None, config.INPUT_SIZE, config.INPUT_SIZE, config.DIM], dtype=tf.float32)
+        self.labels = tf.placeholder(shape=[None, config.OUTPUT_SIZE, config.OUTPUT_SIZE, config.DIM], dtype=tf.float32)
         self.logits = None
         self.output = None
         self.loss = None
 
     def build(self):
         input_data = self.inputs
-
-        conv1 = neural_network.Convolution_Layer(shape= [9, 9, 3, 64], mean = 0.0, stddev = 0.001, value = 0.1)
+        conv1 = neural_network.Convolution_Layer(shape= [9, 9, config.DIM, 64], mean = 0.0, stddev = 0.001)
         h = conv1.feed_forward(input_data=input_data, stride=[1, 1, 1, 1])
-
-        conv2 = neural_network.Convolution_Layer(shape = [1, 1, 64, 32], mean = 0.0, stddev = 0.001, value = 0.1)
+        conv2 = neural_network.Convolution_Layer(shape = [1, 1, 64, 32], mean = 0.0, stddev = 0.001)
         h = conv2.feed_forward(input_data=h, stride=[1, 1, 1, 1])
-
-        outer_layer = neural_network.Output_Layer(shape = [5, 5, 32, 3], mean = 0.0, stddev = 0.001, value = 0.1)
-        self.logits = outer_layer.feed_forward(input_data=h, stride=[1, 1, 1, 1])
-        self.output = tf.image.resize_images(self.logits, [config.OUTPUT_SIZE, config.OUTPUT_SIZE], method=tf.image.ResizeMethod.BILINEAR)
+        outer_layer = neural_network.Output_Layer(shape = [5, 5, 32, config.DIM], mean = 0.0, stddev = 0.001)
+        self.output = outer_layer.feed_forward(input_data=h, stride=[1, 1, 1, 1])
+        #self.output = tf.image.resize_images(self.logits, [config.OUTPUT_SIZE, config.OUTPUT_SIZE], method=tf.image.ResizeMethod.BILINEAR)
         self.loss = tf.reduce_mean(tf.squared_difference(self.labels, self.output))
 
     def train(self, data):
@@ -49,7 +46,6 @@ class MODEL():
                     batch_X, batch_Y = data.generate_batch()
                     feed_dict = {self.inputs: batch_X, self.labels: batch_Y}
                     _, loss_val = session.run([optimizer, self.loss], feed_dict=feed_dict)
-#                    print("batch:", batch, " loss: ", loss_val)
                     total_batch += 5
                     avg_cost += loss_val
                 avg_cost = avg_cost / total_batch
@@ -63,22 +59,24 @@ class MODEL():
         with tf.Session() as session:
             saver.restore(session, os.path.join(config.MODEL_DIR, "model" + str(config.BATCH_SIZE) + "_" + str(config.NUM_EPOCHS) + ".ckpt"))
             avg_cost = 0
-            total_batch = int(data.size/config.BATCH_SIZE)
+            total_batch = int(data.size*(config.NUM_SUBIMG/config.BATCH_SIZE))
             for batch in range(total_batch):
                 batch_X, batch_Y = data.generate_batch()
                 feed_dict = {self.inputs: batch_X, self.labels: batch_Y}
                 pred_Y, loss = session.run([self.output, self.loss], feed_dict=feed_dict)
-                avg_cost += loss/total_batch
+                avg_cost += loss
+            avg_cost = avg_cost / total_batch
             print("cost =", "{:.3f}".format(avg_cost))
 
     def sr_generate(self, data):
         saver = tf.train.Saver()
         with tf.Session() as session:
             saver.restore(session, os.path.join(config.MODEL_DIR, "model" + str(config.BATCH_SIZE) + "_" + str(config.NUM_EPOCHS) + ".ckpt"))
-            for file in data.filelist[:1]:
+            for file in data.filelist:
                 data.process_img(file)
                 batch = np.asarray(data.batch)
                 feed_dict = {self.inputs: batch}
                 patches = session.run(self.output, feed_dict=feed_dict)
+                #utils.display_batch_patch(batch, patches)
                 image = utils.stitch(patches)
                 utils.reconstruct(image, file)

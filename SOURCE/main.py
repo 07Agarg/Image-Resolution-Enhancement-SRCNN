@@ -6,7 +6,7 @@ Created on Sat Jun 23 20:32:40 2018
 """
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+#os.environ["CUDA_VISIBLE_DEVICES"]="1"
 import data
 import model
 import config

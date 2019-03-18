@@ -7,12 +7,11 @@ Created on Sat Jun 23 20:33:08 2018
 
 import tensorflow as tf
 
-
 class Layer():
 
-    def __init__(self, shape, mean, stddev, value):
+    def __init__(self, shape, mean, stddev):
         self.weights = tf.Variable(tf.random_normal(shape=shape, mean=mean, stddev=stddev))
-        self.biases = tf.Variable(tf.constant(value=value, shape=[shape[-1]]))
+        self.biases = tf.Variable(tf.zeros(shape=[shape[-1]]))
 
     def feed_forward(self, input_data, stride=None):
         raise NotImplementedError
@@ -20,8 +19,8 @@ class Layer():
 
 class Convolution_Layer(Layer):
 
-    def __init__(self, shape, mean, stddev, value):
-        super(Convolution_Layer, self).__init__(shape, mean, stddev, value)
+    def __init__(self, shape, mean, stddev):
+        super(Convolution_Layer, self).__init__(shape, mean, stddev)
 
     def feed_forward(self, input_data, stride):
         conv = tf.nn.conv2d(input_data, self.weights, stride, padding="VALID")
@@ -31,9 +30,9 @@ class Convolution_Layer(Layer):
 
 class Output_Layer(Layer):
 
-    def __init__(self, shape, mean, stddev, value):
-        super(Output_Layer, self).__init__(shape, mean, stddev, value)
+    def __init__(self, shape, mean, stddev):
+        super(Output_Layer, self).__init__(shape, mean, stddev)
 
     def feed_forward(self, input_data, stride):
-        output_data = tf.nn.conv2d(input_data, self.weights, stride, padding="VALID")
+        output_data = tf.nn.bias_add(tf.nn.conv2d(input_data, self.weights, stride, padding="VALID"), self.biases)
         return output_data

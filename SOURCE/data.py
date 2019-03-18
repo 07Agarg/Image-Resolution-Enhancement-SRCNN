@@ -5,13 +5,23 @@ Created on Sat Jun 23 20:33:23 2018
 @author: ashima.garg
 """
 
-
-import pandas as pd
 import numpy as np
 import cv2
 import os
 import config
+import scipy.misc
+import scipy.ndimage
 
+def modcrop(image, scale=3):
+    if image.shape[2] == 3:
+        size = image.shape
+        size -= np.mod(size, scale)
+        image = image[0:size[0], 0:size[1]]
+        return image
+
+def im2double(im):
+    info = np.iinfo(im.dtype) 
+    return im.astype(np.float) / info.max
 
 class DATA():
 
@@ -31,10 +41,13 @@ class DATA():
         return ycr_cbimg
 
     def preprocess_img(self, img):
-        labels = img
-        blurImg = cv2.GaussianBlur(img, (5, 5), 0)
-        bicbuic_img = cv2.resize(blurImg, None, fx=1.0/config.SCALE, fy=1.0/config.SCALE, interpolation=cv2.INTER_CUBIC)
-        inputs = cv2.resize(bicbuic_img, None, fx=config.SCALE, fy=config.SCALE, interpolation=cv2.INTER_CUBIC)
+        img = im2double(img)
+        labels = modcrop(img, config.SCALE)
+        size = labels.shape
+        temp = scipy.misc.imresize(labels, 1/config.SCALE, interp='bicubic')
+        inputs = scipy.misc.imresize(temp, size, interp='bicubic')
+        inputs = inputs[:, :, 0]
+        labels = labels[:, :, 0]
         return inputs, labels
 
     def process_img(self, file):
@@ -50,18 +63,18 @@ class DATA():
                 ny += 1
                 sub_input = inputs[i:(i+config.INPUT_SIZE), j:(j+config.INPUT_SIZE)]
                 sub_label = labels[(i+config.PAD):(i+config.PAD+config.OUTPUT_SIZE), (j+config.PAD):(j+config.PAD+config.OUTPUT_SIZE)]
-                sub_input = np.reshape(sub_input, (config.INPUT_SIZE, config.INPUT_SIZE, 3))
-                sub_label = np.reshape(sub_label, (config.OUTPUT_SIZE, config.OUTPUT_SIZE, 3))
+                sub_input = np.reshape(sub_input, (config.INPUT_SIZE, config.INPUT_SIZE, config.DIM))
+                sub_label = np.reshape(sub_label, (config.OUTPUT_SIZE, config.OUTPUT_SIZE, config.DIM))
                 self.batch.append(sub_input)
                 self.batch_label.append(sub_label)
 
-    def generate_batch(self):
+    def generate_batch( self):
         if self.data_index >= (config.NUM_SUBIMG-1) or self.batch is None:
             self.data_index = 0
             self.process_img(self.filelist[self.file_index])
             self.file_index = (self.file_index + 1) % self.size
-        batch = np.asarray(self.batch[self.data_index:(self.data_index+config.BATCH_SIZE)])/255
-        label = np.asarray(self.batch_label[self.data_index:(self.data_index+config.BATCH_SIZE)])/255
+        batch = np.asarray(self.batch[self.data_index:(self.data_index+config.BATCH_SIZE)])
+        label = np.asarray(self.batch_label[self.data_index:(self.data_index+config.BATCH_SIZE)])
         self.data_index = self.data_index + config.BATCH_SIZE
         return batch, label
 
